@@ -2,6 +2,8 @@
 Tout ce qui concerne ce superbe outil
 
 # USB boot Clonezilla personnalisé
+TODO : clarifier le code avec longues lignes
+
 Créée une clé bootable avec la dernière version de CZ (en 32 ou 64 bits), avec clavier FR, rend le système accessible par SSH et par HOSTNAME (Avahi), installe des outils utiles tel vim.
 
 Nota : prend en compte le certificat Let's encrypt expiré (sinon ne télécharge pas avec wget)
