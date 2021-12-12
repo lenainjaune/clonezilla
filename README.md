@@ -182,7 +182,7 @@ cat << EOF > \$SERVICE_PATH
 Description=Configure la live session
 [Service]
 Type=Simple
-ExecStart=/bin/bash $SCRIPT_PATH
+ExecStart=/bin/bash \$SCRIPT_PATH
 [Install]
 WantedBy=multi-user.target
 EOF
