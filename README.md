@@ -13,7 +13,7 @@ Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
 user@host:~$ su -
-user@host:~$ apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget
+user@host:~$ apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget dosfstools
 
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
 lsblk
@@ -85,7 +85,7 @@ root@host:/# systemctl enable ssh
 root@host:/# systemctl enable $( basename $SERVICE_PATH .service )
 root@host:/# echo nameserver 8.8.8.8 > /etc/resolv.conf
 # Les paquets qu'on doit installer...
-root@host:/# apt update && apt install -y vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns
+root@host:/# apt update && apt install -y vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns 
 # ...
 # Traitement des actions différées (« triggers ») pour mailcap (3.68) ...
 # localepurge: Disk space freed:      0 KiB in /usr/share/locale
@@ -119,7 +119,7 @@ root@host:~# rmdir /mnt/CLONEZILLA
 TODO : à tester (en particulier le chroot avec l'échappement des $)
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
-apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget
+apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget dosfstools
 
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
 lsblk
