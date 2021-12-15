@@ -13,7 +13,7 @@ Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
 user@host:~$ su -
-user@host:~$ apt update && apt install -y rsync libc6-i386 mtools squashfs-tools
+user@host:~$ apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted
 
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
 lsblk
@@ -29,7 +29,6 @@ ISO_ARCH=64
 ISO_DL_SOURCE=https://sourceforge.net/projects/clonezilla/files/clonezilla_live_stable
 
 # Format
-root@host:~# mkdir -p /mnt/CLONEZILLA/ /mnt/ISO
 root@host:~# parted -a cylinder $DEV -s "mklabel msdos" -s "mkpart primary fat32 0 100%"
 root@host:~# mkfs.vfat -n $HOSTNAME -I ${DEV}1 -F 32
 
@@ -40,6 +39,7 @@ root@host:~# cz_latest_iso=$( wget --no-check-certificate -qO- $cz_latest_dl_fol
 root@host:~# wget --no-check-certificate $cz_latest_iso -O cz_latest.iso
 
 # Appliquer ISO sur USB
+root@host:~# mkdir -p /mnt/CLONEZILLA/ /mnt/ISO
 root@host:~# mount -o loop cz_latest.iso /mnt/ISO/
 root@host:~# mount ${DEV}1 /mnt/CLONEZILLA/
 root@host:~# rsync -aP /mnt/ISO/ /mnt/CLONEZILLA/
@@ -119,7 +119,7 @@ root@host:~# rmdir /mnt/CLONEZILLA
 TODO : à tester (en particulier le chroot avec l'échappement des $)
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
-apt update && apt install -y rsync libc6-i386 mtools squashfs-tools
+apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted
 
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
 lsblk
@@ -135,7 +135,6 @@ ISO_ARCH=64
 ISO_DL_SOURCE=https://sourceforge.net/projects/clonezilla/files/clonezilla_live_stable
 
 # Format
-mkdir -p /mnt/CLONEZILLA/ /mnt/ISO
 parted -a cylinder $DEV -s "mklabel msdos" -s "mkpart primary fat32 0 100%"
 mkfs.vfat -n $HOSTNAME -I ${DEV}1 -F 32
 
@@ -146,6 +145,7 @@ cz_latest_iso=$( wget --no-check-certificate -qO- $cz_latest_dl_folder | grep -i
 wget --no-check-certificate $cz_latest_iso -O cz_latest.iso
 
 # Appliquer ISO sur USB
+mkdir -p /mnt/CLONEZILLA/ /mnt/ISO
 mount -o loop cz_latest.iso /mnt/ISO/
 mount ${DEV}1 /mnt/CLONEZILLA/
 rsync -aP /mnt/ISO/ /mnt/CLONEZILLA/
