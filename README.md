@@ -13,7 +13,7 @@ Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
 user@host:~$ su -
-user@host:~$ apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted
+user@host:~$ apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget
 
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
 lsblk
@@ -119,7 +119,7 @@ root@host:~# rmdir /mnt/CLONEZILLA
 TODO : à tester (en particulier le chroot avec l'échappement des $)
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
-apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted
+apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget
 
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
 lsblk
