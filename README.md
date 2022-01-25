@@ -85,7 +85,8 @@ root@host:/# systemctl enable ssh
 root@host:/# systemctl enable $( basename $SERVICE_PATH .service )
 root@host:/# echo nameserver 8.8.8.8 > /etc/resolv.conf
 # Les paquets qu'on doit installer...
-root@host:/# apt update && apt install -y vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns 
+root@host:/# #apt update && apt install -y vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns#
+root@host:/# apt update && apt install -y vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns memtester
 # ...
 # Traitement des actions différées (« triggers ») pour mailcap (3.68) ...
 # localepurge: Disk space freed:      0 KiB in /usr/share/locale
@@ -117,6 +118,7 @@ root@host:~# rmdir /mnt/CLONEZILLA
 
 ## Automatisé
 TODO : à tester (en particulier le chroot avec l'échappement des $)
+TODO : tester avec nouvelle gestion des applications
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
 apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget dosfstools
@@ -133,6 +135,7 @@ SERVICE_PATH=/etc/systemd/system/set_live_session.service
 ISO_ARCH=64
 #ISO_ARCH="(i386|i486|i686)"
 ISO_DL_SOURCE=https://sourceforge.net/projects/clonezilla/files/clonezilla_live_stable
+APP="vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns memtester"
 
 # Format
 parted -a cylinder $DEV -s "mklabel msdos" -s "mkpart primary fat32 0 100%"
@@ -161,7 +164,8 @@ rsync -aP /mnt/ squashfs
 
 # chroot squashfs pour personnaliser
 for f in /proc /sys ; do mount -B $f squashfs$f ; done ; mount -t devpts none squashfs/dev/pts
-cat << EOC| PASS=$PASS HOSTNAME=$HOSTNAME SCRIPT_PATH=$SCRIPT_PATH SERVICE_PATH=$SERVICE_PATH chroot squashfs
+#cat << EOC| PASS=$PASS HOSTNAME=$HOSTNAME SCRIPT_PATH=$SCRIPT_PATH SERVICE_PATH=$SERVICE_PATH chroot squashfs
+cat << EOC| APP=$APP PASS=$PASS HOSTNAME=$HOSTNAME SCRIPT_PATH=$SCRIPT_PATH SERVICE_PATH=$SERVICE_PATH chroot squashfs
 echo \$HOSTNAME > /etc/hostname
 cat << EOF > \$SCRIPT_PATH
 #!/bin/bash
@@ -191,7 +195,8 @@ systemctl enable ssh
 systemctl enable \$( basename \$SERVICE_PATH .service )
 echo nameserver 8.8.8.8 > /etc/resolv.conf
 # Les paquets qu'on doit installer...
-apt update && apt install -y vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns
+# apt update && apt install -y vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns
+apt update && apt install -y $APP
 # ...
 # Traitement des actions différées (« triggers ») pour mailcap (3.68) ...
 # localepurge: Disk space freed:      0 KiB in /usr/share/locale
