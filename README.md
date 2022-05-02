@@ -135,7 +135,7 @@ SERVICE_PATH=/etc/systemd/system/set_live_session.service
 ISO_ARCH=64
 #ISO_ARCH="(i386|i486|i686)"
 ISO_DL_SOURCE=https://sourceforge.net/projects/clonezilla/files/clonezilla_live_stable
-APP="vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns memtester"
+APP="vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns memtester nbd-server"
 
 # Format
 parted -a cylinder $DEV -s "mklabel msdos" -s "mkpart primary fat32 0 100%"
@@ -196,7 +196,7 @@ systemctl enable \$( basename \$SERVICE_PATH .service )
 echo nameserver 8.8.8.8 > /etc/resolv.conf
 # Les paquets qu'on doit installer...
 # apt update && apt install -y vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns
-apt update && apt install -y $APP
+apt update && apt install -y \$APP
 # ...
 # Traitement des actions différées (« triggers ») pour mailcap (3.68) ...
 # localepurge: Disk space freed:      0 KiB in /usr/share/locale
