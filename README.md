@@ -305,7 +305,7 @@ chmod 644 \$SERVICE_PATH
 cat << EOF > \$SCRIPT_NBD_EXPORT_PATH
 #!/bin/bash
 
-if [[ \$( netstat -atnp | grep nbd-server | grep ESTABLISHED ) ]] ; then
+if [[ \\\$( netstat -atnp | grep nbd-server | grep ESTABLISHED ) ]] ; then
         exit 1
 fi
 
@@ -313,17 +313,17 @@ pkill nbd-server
 
 (
  echo -e "[generic]\nuser=root\ngroup=root\nallowlist=true"
- for e in \$( \
-   lsblk -nd -o NAME,SIZE | awk '\$2 != "0B" { print \$1 "|" \$2 }' \
+ for e in \\\$( \
+   lsblk -nd -o NAME,SIZE | awk '\\\$2 != "0B" { print \\\$1 "|" \\\$2 }' \
  ) ; do
-  dev=\$( echo \$e | cut -d '|' -f 1 )
-  id=\$( \
+  dev=\\\$( echo \\\$e | cut -d '|' -f 1 )
+  id=\\\$( \
    find /dev -type l \
         -exec bash -c "l={} ; echo \\\$l \\\$( readlink \\\$l )" \; \
-         | grep /by-id/.*\$dev$ | cut -d ' ' -f 1 \
+         | grep /by-id/.*\\\$dev$ | cut -d ' ' -f 1 \
          | rev | cut -d '/' -f 1 | rev )
-  size=\$( echo \$e | cut -d '|' -f 2 )
-  echo -e "[\$dev@\$id@\$size]\nexportname=/dev/\$dev"
+  size=\\\$( echo \\\$e | cut -d '|' -f 2 )
+  echo -e "[\\\$dev@\\\$id@\\\$size]\nexportname=/dev/\\\$dev"
  done
 ) > nbd.conf
 
