@@ -327,7 +327,7 @@ pkill nbd-server
  done
 ) > nbd.conf
 
-nbd-server -C nbd.conf
+nbd-server -C /nbd.conf
 EOF
 chmod +x \$SCRIPT_NBD_EXPORT_PATH
 systemctl enable ssh
