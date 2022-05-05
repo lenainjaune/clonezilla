@@ -227,7 +227,12 @@ rmdir /mnt/CLONEZILLA
 ```
 ## Automatisé avec export NBD
 TODO : à tester (en particulier le chroot avec l'échappement des $)
+
 TODO : tester avec nouvelle gestion des applications
+
+TODO : rendre automatique exécution manuelle /usr/lib/live/mount/medium/export_all_local_disk.sh ; bug pour le moment (nbd.conf créé mais n'est pas démarré)
+
+TODO : renommer les variables pour que ce soit plus clair et aussi limiter nécéssaire dans chroot
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
 apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget dosfstools
@@ -237,11 +242,11 @@ lsblk
 DEV=/dev/sdg
 
 # Config
-PASS='P455w0rd!*'
 HOSTNAME=CZ-LIVE
-SCRIPT_PATH=/set_live_session.sh
-SCRIPT_NBD_EXPORT_PATH=/export_all_local_disk.sh
-SERVICE_PATH=/etc/systemd/system/set_live_session.service
+PASS='P455w0rd!*'
+SCRIPT_NAME_RAN_1ST_FROM_SERVICE=ran_first.sh
+SCRIPT_NAME_NBD_EXPORT=export_all_local_disk.sh
+SERVICE_NAME_RAN_1ST_FROM_LIVE_SESSION=run_1st_script.service
 ISO_ARCH=64
 #ISO_ARCH="(i386|i486|i686)"
 ISO_DL_SOURCE=https://sourceforge.net/projects/clonezilla/files/clonezilla_live_stable
@@ -274,65 +279,8 @@ rsync -aP /mnt/ squashfs
 
 # chroot squashfs pour personnaliser
 for f in /proc /sys ; do mount -B $f squashfs$f ; done ; mount -t devpts none squashfs/dev/pts
-#cat << EOC| PASS=$PASS HOSTNAME=$HOSTNAME SCRIPT_PATH=$SCRIPT_PATH SERVICE_PATH=$SERVICE_PATH chroot squashfs
-cat << EOC| SCRIPT_NBD_EXPORT_PATH=$SCRIPT_NBD_EXPORT_PATH APP=$APP PASS=$PASS HOSTNAME=$HOSTNAME SCRIPT_PATH=$SCRIPT_PATH SERVICE_PATH=$SERVICE_PATH chroot squashfs
-echo \$HOSTNAME > /etc/hostname
-cat << EOF > \$SCRIPT_PATH
-#!/bin/bash
-ln -s /usr/lib/live/mount/medium /root/usb_root
-ln -s /usr/lib/live/mount/medium /home/user/usb_root
-echo -e '\$PASS\n\$PASS' | passwd user
-echo -e '\$PASS\n\$PASS' | passwd root
-\$SCRIPT_NBD_EXPORT_PATH
-EOF
-chmod +x \$SCRIPT_PATH
-a=\$( cat /etc/ssh/sshd_config | grep -vE ^[[:space:]]*PermitRootLogin ; echo PermitRootLogin yes )
-echo -e "\$a" > /etc/ssh/sshd_config
-unset a
-# pour le moment je n'arrive pas à faire démarrer correctement SSH que depuis profile (s'exécute à chaque logon : ex : user -> root)
-echo "systemctl restart ssh" >> /etc/profile
-# utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
-cat << EOF > \$SERVICE_PATH
-[Unit]
-Description=Configure la live session
-[Service]
-Type=Simple
-ExecStart=/bin/bash \$SCRIPT_PATH
-[Install]
-WantedBy=multi-user.target
-EOF
-chmod 644 \$SERVICE_PATH
-cat << EOF > \$SCRIPT_NBD_EXPORT_PATH
-#!/bin/bash
 
-if [[ \\\$( netstat -atnp | grep nbd-server | grep ESTABLISHED ) ]] ; then
-        exit 1
-fi
-
-pkill nbd-server
-
-(
- echo -e "[generic]\nuser=root\ngroup=root\nallowlist=true"
- for e in \\\$( \
-   lsblk -nd -o NAME,SIZE | awk '\\\$2 != "0B" { print \\\$1 "|" \\\$2 }' \
- ) ; do
-  dev=\\\$( echo \\\$e | cut -d '|' -f 1 )
-  id=\\\$( \
-   find /dev -type l \
-        -exec bash -c "l={} ; echo \\\$l \\\$( readlink \\\$l )" \; \
-         | grep /by-id/.*\\\$dev$ | cut -d ' ' -f 1 \
-         | rev | cut -d '/' -f 1 | rev )
-  size=\\\$( echo \\\$e | cut -d '|' -f 2 )
-  echo -e "[\\\$dev@\\\$id@\\\$size]\nexportname=/dev/\\\$dev"
- done
-) > nbd.conf
-
-nbd-server -C /nbd.conf
-EOF
-chmod +x \$SCRIPT_NBD_EXPORT_PATH
-systemctl enable ssh
-systemctl enable \$( basename \$SERVICE_PATH .service )
-echo nameserver 8.8.8.8 > /etc/resolv.conf
+cat << EOC| APP=$APP HOSTNAME=$HOSTNAME SCRIPT_NAME_RAN_1ST_FROM_SERVICE=$SCRIPT_NAME_RAN_1ST_FROM_SERVICE SERVICE_NAME_RAN_1ST_FROM_LIVE_SESSION=$SERVICE_NAME_RAN_1ST_FROM_LIVE_SESSION chroot squashfs
 # Les paquets qu'on doit installer...
 # #apt# update && apt install -y vim avahi-daemon dnsutils ...
 apt update && apt install -y \$APP
@@ -346,6 +294,29 @@ apt update && apt install -y \$APP
 # ...
 # Total disk space freed by localepurge: 2180 KiB
 # => ces lignes surnuméraires sont à priori normales...
+echo \$HOSTNAME > /etc/hostname
+a=\$( cat /etc/ssh/sshd_config | grep -vE ^[[:space:]]*PermitRootLogin ; echo PermitRootLogin yes )
+echo -e "\$a" > /etc/ssh/sshd_config
+# pour le moment je n'arrive pas à faire démarrer correctement SSH que depuis profile (s'exécute à chaque logon : ex : user -> root)
+a=\$( cat /etc/profile | grep -vE "^[[:space:]]*systemctl[[:space:]]+restart[[:space:]]+ssh" ; echo systemctl restart ssh )
+echo -e "\$a" > /etc/profile
+a=\$( echo nameserver 8.8.8.8 ; cat /etc/resolv.conf | grep -vE ^[[:space:]]*nameserver[[:space:]]+8.8.8.8 )
+echo -e "\$a" > /etc/resolv.conf
+unset a
+# utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
+cat << EOF > /etc/systemd/system/\$SERVICE_NAME_RAN_1ST_FROM_LIVE_SESSION
+[Unit]
+Description=Exécute le premier script depuis la racine de la clé
+[Service]
+Type=Simple
+ExecStart=/bin/bash /usr/lib/live/mount/medium/\$SCRIPT_NAME_RAN_1ST_FROM_SERVICE
+#ExecStart=/usr/bin/sudo /bin/bash /usr/lib/live/mount/medium/\$SCRIPT_NAME_RAN_1ST_FROM_SERVICE
+[Install]
+WantedBy=multi-user.target
+EOF
+chmod 644 /etc/systemd/system/\$SERVICE_NAME_RAN_1ST_FROM_LIVE_SESSION
+systemctl enable ssh
+systemctl enable \$( basename /etc/systemd/system/\$SERVICE_NAME_RAN_1ST_FROM_LIVE_SESSION .service )
 # nécessaire ? a priori non ! : root@host:/# update-initramfs -k all -u
 EOC
 for f in /proc /sys /dev/pts ; do umount -lf squashfs$f ; done
@@ -359,10 +330,76 @@ rsync -P filesystem.squashfs /mnt/CLONEZILLA/live
 rm filesystem.squashfs
 chmod 444 /mnt/CLONEZILLA/live/filesystem.squashfs
 
+
+# Script à exécuter en 1er ; peut être modifié hors LIVE session
+cat << EOF > /mnt/CLONEZILLA/$SCRIPT_NAME_RAN_1ST_FROM_SERVICE
+#!/bin/bash
+
+# Rédéfinir hostname (laisser vide pour ne pas redéfinir) pour le cas 
+#  d'utilisation multiple de Clonezilla à distance
+NEW_HOSTNAME=
+# Mot de passe de session
+PASS='$PASS'
+
+if [[ -z \$NEW_HOSTNAME ]] ; then
+ sed -i "s/\$HOSTNAME/\$NEW_HOSTNAME/g" /etc/hosts
+ echo \$NEW_HOSTNAME > /etc/hostname
+ hostnamectl set-hostname \$NEW_HOSTNAME
+ systemctl restart avahi-daemon
+fi
+
+ln -s /usr/lib/live/mount/medium /root/usb_root
+ln -s /usr/lib/live/mount/medium /home/user/usb_root
+echo -e '$PASS\n$PASS' | passwd user
+echo -e '$PASS\n$PASS' | passwd root
+/usr/lib/live/mount/medium/$SCRIPT_NAME_NBD_EXPORT
+EOF
+chmod +x /mnt/CLONEZILLA/$SCRIPT_NAME_RAN_1ST_FROM_SERVICE
+
+# Exporter les disques locaux
+# Nota : heredoc avec variables non expandées
+cat << 'EOF' > /mnt/CLONEZILLA/$SCRIPT_NAME_NBD_EXPORT
+#!/bin/bash
+
+# S'il y a encore des connexions établies (disques à distance importés)
+if [[ $( netstat -atnp | grep nbd-server | grep ESTABLISHED ) ]] ; then
+	msg="Erreur : les disques sont déjà exportés"
+	msg="$msg\nVoici la liste :"
+	msg="$msg\n$( netstat -atnp | grep nbd-server | grep ESTABLISHED )"
+	echo -e "$msg"
+	exit 1
+fi
+
+# Tuer l'export des disques locaux
+pkill nbd-server
+
+# Créer la configuration de l'export des disques locaux
+(
+ echo -e "[generic]\nuser=root\ngroup=root\nallowlist=true"
+ for e in $( \
+   lsblk -nd -o NAME,SIZE | awk '$2 != "0B" { print $1 "|" $2 }' \
+ ) ; do
+  dev=$( echo $e | cut -d '|' -f 1 )
+  id=$( \
+   find /dev -type l \
+        -exec bash -c 'l={} ; echo $l $( readlink $l )' \; \
+         | grep /by-id/.*$dev$ | cut -d ' ' -f 1 \
+         | rev | cut -d '/' -f 1 | rev )
+  size=$( echo $e | cut -d '|' -f 2 )
+  echo -e "[$dev@$id@$size]\nexportname=/dev/$dev"
+ done
+) > nbd.conf
+
+# Exporter les disques locaux
+nbd-server -C /nbd.conf
+EOF
+chmod +x /mnt/CLONEZILLA/$SCRIPT_NAME_NBD_EXPORT
+
 # Rendre la clé bootable
 bash /mnt/CLONEZILLA/utils/linux/makeboot.sh -L $HOSTNAME -b ${DEV}1
 umount -l /mnt/CLONEZILLA
 rmdir /mnt/CLONEZILLA
+
 ``
 
 ## Tester avec QEmu/KVM
