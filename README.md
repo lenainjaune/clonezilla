@@ -232,7 +232,9 @@ TODO : tester avec nouvelle gestion des applications
 
 TODO : rendre automatique exécution manuelle /usr/lib/live/mount/medium/export_all_local_disk.sh ; bug pour le moment (nbd.conf créé mais n'est pas démarré)
 
-TODO : renommer les variables pour que ce soit plus clair et aussi limiter nécéssaire dans chroot
+TODO : renommer les variables pour que ce soit plus clair
+
+TODO : chroot recréer conf défaut + limiter nécéssaire
 ```sh
 # Dépendances pour mettre en place (Debian) en SU
 apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget dosfstools
