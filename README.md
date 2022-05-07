@@ -226,9 +226,6 @@ umount -l /mnt/CLONEZILLA
 rmdir /mnt/CLONEZILLA
 ```
 
-
-``
-
 ## Tester avec QEmu/KVM
 ```sh
 DEV=/dev/sdg
