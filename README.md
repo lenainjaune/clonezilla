@@ -247,10 +247,6 @@ apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget 
 lsblk
 DEV=/dev/sdg
 
-
-# ici
-DEV=/dev/sdb ; ln clonezilla-live-2.8.1-12-amd64.iso cz_latest.iso
-
 # Config
 DNS=8.8.8.8
 HOSTNAME_USB=CZ-LIVE
@@ -266,11 +262,11 @@ ISO_DL_SOURCE=https://sourceforge.net/projects/clonezilla/files/clonezilla_live_
 parted -a cylinder $DEV -s "mklabel msdos" -s "mkpart primary fat32 0 100%"
 mkfs.vfat -n $HOSTNAME_USB -I ${DEV}1 -F 32
 
-## DL dernier ISO stable réel (Nécessite mtools sur les nouvelles versions)
-# cz_latest_dl_folder=$( wget --no-check-certificate -qO- $ISO_DL_SOURCE | grep -Eo "https?://[^ \"]*sourceforge[^ \"]*/[-0-9.]+/" | sort -rV | head -n1 )
-# cz_latest_dl_version=$( echo $cz_latest_dl_folder | grep -Eo "[-0-9.]{2,}" )
-# cz_latest_iso=$( wget --no-check-certificate -qO- $cz_latest_dl_folder | grep -iEo "https?://[^ \"]*sourceforge[^ \"]*\.iso" | grep -E $cz_latest_dl_version | grep -E "$ISO_ARCH[^-]" | sort -u )
-# wget --no-check-certificate $cz_latest_iso -O cz_latest.iso
+# DL dernier ISO stable réel (Nécessite mtools sur les nouvelles versions)
+cz_latest_dl_folder=$( wget --no-check-certificate -qO- $ISO_DL_SOURCE | grep -Eo "https?://[^ \"]*sourceforge[^ \"]*/[-0-9.]+/" | sort -rV | head -n1 )
+cz_latest_dl_version=$( echo $cz_latest_dl_folder | grep -Eo "[-0-9.]{2,}" )
+cz_latest_iso=$( wget --no-check-certificate -qO- $cz_latest_dl_folder | grep -iEo "https?://[^ \"]*sourceforge[^ \"]*\.iso" | grep -E $cz_latest_dl_version | grep -E "$ISO_ARCH[^-]" | sort -u )
+wget --no-check-certificate $cz_latest_iso -O cz_latest.iso
 
 # Appliquer ISO sur USB
 mkdir -p /mnt/CLONEZILLA/ /mnt/ISO
