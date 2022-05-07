@@ -433,7 +433,7 @@ cat << EOF > /mnt/CLONEZILLA/$OUTER_1ST_SCRIPT
  # => touched contient bien le nouveau pass MAIS bizarrement user et root n'ont plus de mot de passe
  # aussi relancer le script depuis la live session donne le même résultat
 #
- #/usr/lib/live/mount/medium/$SCRIPT_NAME_NBD_EXPORT
+ /usr/lib/live/mount/medium/$SCRIPT_NAME_NBD_EXPORT
 #
 EOF
 chmod +x /mnt/CLONEZILLA/$OUTER_1ST_SCRIPT
