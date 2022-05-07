@@ -225,6 +225,272 @@ bash /mnt/CLONEZILLA/utils/linux/makeboot.sh -L $HOSTNAME -b ${DEV}1
 umount -l /mnt/CLONEZILLA
 rmdir /mnt/CLONEZILLA
 ```
+## Automatisé avec export NBD
+```sh
+# TODO : NBD empecher d'exporter les disques utilisés (montés ou autres) en particulier le disque usb de la live session (voir le test attacher support USB distant - plus bas)
+# TODO : gestion PASSWD comme dans le script utilisateur
+# TODO : /etc/hosts est-ce ça qui donnait les erreur résolution DNS CZ-LIVE
+#
+# TODO : supprimer SUDO (service et script interne pour vérifier ce qui marche une fois fini
+# TODO : démarrer SSH ailleurs que /etc/profile exécuté à chaque logon
+# TODO : empêcher de supprimer le script utilisateur avec chattr
+# TODO : si script utilisateur absent en recreer un par defaut ; si existe deja verifier que shebang en ligne 1 
+# TODO : parfois on doit redémarrer avahi (hostname-2 !)
+# TODO : partition persistante avec scripts utilisateurs pour pouvoir modifier en live session
+
+# Dépendances pour mettre en place (Debian) en SU
+apt update && apt install -y rsync libc6-i386 mtools squashfs-tools parted wget dosfstools
+
+# Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
+lsblk
+DEV=/dev/sdg
+
+
+# ici
+DEV=/dev/sdb ; ln clonezilla-live-2.8.1-12-amd64.iso cz_latest.iso
+
+# Config
+DNS=8.8.8.8
+HOSTNAME_USB=CZ-LIVE
+## 'PASS' protège PASS d'une expansion non voulue de * ou ! etc.
+PASS='P455w0rd!*'
+OUTER_1ST_SCRIPT=ran_first.sh
+SCRIPT_NAME_NBD_EXPORT=export_all_local_disk.sh
+ISO_ARCH=64
+#ISO_ARCH="(i386|i486|i686)"
+ISO_DL_SOURCE=https://sourceforge.net/projects/clonezilla/files/clonezilla_live_stable
+
+# Format
+parted -a cylinder $DEV -s "mklabel msdos" -s "mkpart primary fat32 0 100%"
+mkfs.vfat -n $HOSTNAME_USB -I ${DEV}1 -F 32
+
+## DL dernier ISO stable réel (Nécessite mtools sur les nouvelles versions)
+# cz_latest_dl_folder=$( wget --no-check-certificate -qO- $ISO_DL_SOURCE | grep -Eo "https?://[^ \"]*sourceforge[^ \"]*/[-0-9.]+/" | sort -rV | head -n1 )
+# cz_latest_dl_version=$( echo $cz_latest_dl_folder | grep -Eo "[-0-9.]{2,}" )
+# cz_latest_iso=$( wget --no-check-certificate -qO- $cz_latest_dl_folder | grep -iEo "https?://[^ \"]*sourceforge[^ \"]*\.iso" | grep -E $cz_latest_dl_version | grep -E "$ISO_ARCH[^-]" | sort -u )
+# wget --no-check-certificate $cz_latest_iso -O cz_latest.iso
+
+# Appliquer ISO sur USB
+mkdir -p /mnt/CLONEZILLA/ /mnt/ISO
+mount -o loop cz_latest.iso /mnt/ISO/
+mount ${DEV}1 /mnt/CLONEZILLA/
+rsync -aP /mnt/ISO/ /mnt/CLONEZILLA/
+umount -l /mnt/ISO
+rm cz_latest.iso
+rmdir /mnt/ISO
+
+# Au boot on definit en FR et on prerun dhclient
+sed -i '/^ *append initrd=/  s/locales=/locales=fr_FR.UTF-8/;s/keyboard-layouts=/keyboard-layouts=fr/;s/enforcing=0 /enforcing=0  ocs_prerun="dhclient" /' /mnt/CLONEZILLA/syslinux/syslinux.cfg
+mount -t squashfs -o loop /mnt/CLONEZILLA/live/filesystem.squashfs /mnt/
+mkdir squashfs
+rsync -aP /mnt/ squashfs
+
+# chroot squashfs pour personnaliser
+for f in /proc /sys ; do mount -B $f squashfs$f ; done
+mount -t devpts none squashfs/dev/pts
+cat << EOC| DNS=$DNS PASS=$PASS HOSTNAME_USB=$HOSTNAME_USB \
+  OUTER_1ST_SCRIPT=$OUTER_1ST_SCRIPT chroot squashfs
+#
+ INNER_1ST_SCRIPT=inner_1st_script.sh
+ INNER_1ST_SERVICE=run_1st_script.service
+ APP="vim avahi-daemon dnsutils winbind libnss-winbind libnss-mdns \\
+  memtester nbd-server"
+#
+ echo \$HOSTNAME_USB > /etc/hostname
+#
+ # DNS (DHCP au boot dans ocs_prerun du boot)
+ a=\$(
+  echo nameserver \$DNS
+  cat /etc/resolv.conf \\
+   | grep -vE ^[[:space:]]*nameserver[[:space:]]+\$DNS[[:space:]]*$
+ )
+ echo -e "\$a" > /etc/resolv.conf
+#
+ # Installer les paquets (nécessite réseau configuré + DNS) ...
+ apt update && apt install -y \$APP
+ #  ...
+ #  Traitement des actions différées (« triggers ») pour mailcap (3.68)
+ #  localepurge: Disk space freed:      0 KiB in /usr/share/locale
+ #  ... 16 KiB in /usr/share/man
+ #  ... 0 KiB in /usr/share/tcltk
+ #  ... 0 KiB in /usr/share/calendar
+ #  ... 2164 KiB in /usr/share/vim/vim82/lang
+ #   ...
+ # Total disk space freed by localepurge: 2180 KiB
+ #  => ces lignes surnuméraires sont à priori normales...
+#
+ # SSH (auto exécution + accès root)
+ a=\$(
+  cat /etc/profile \\
+   | grep -vE ^[[:space:]]*systemctl[[:space:]]+restart[[:space:]]+ssh
+  echo systemctl restart ssh
+ )
+ echo -e "\$a" > /etc/profile
+ a=\$(
+  cat /etc/ssh/sshd_config | grep -vE ^[[:space:]]*PermitRootLogin
+  echo PermitRootLogin yes
+ )
+ echo -e "\$a" > /etc/ssh/sshd_config
+ systemctl enable ssh
+#
+ # echo -e "\$(
+ #  a=\$(
+ #   cat /etc/ssh/sshd_config | grep -vE ^[[:space:]]*PermitRootLogin
+ #   echo PermitRootLogin yes
+ #  )
+ #  echo -e "\$a"
+ # )" > /etc/ssh/sshd_config 
+#
+cat << EOF > \$INNER_1ST_SCRIPT
+#!/bin/bash
+#
+ echo -e "127.0.0.1\tlocalhost\n127.0.1.1\t$HOSTNAME_USB" > /etc/hosts
+ # => OK
+#
+ echo -e '\$PASS\n\$PASS' | passwd user
+ echo -e '\$PASS\n\$PASS' | passwd root
+#
+ ln -s /usr/lib/live/mount/medium /root/usb_root
+ ln -s /usr/lib/live/mount/medium /home/user/usb_root
+#
+ /usr/bin/sudo /run/live/medium/\$OUTER_1ST_SCRIPT
+ # => erreur résolution DNS CZ-LIVE
+ # TODO : tester /usr/lib/live/mount/medium/ran_first.sh
+ # TODO : tester SUDO /usr/lib/live/mount/medium/ran_first.sh
+ # TODO : tester pour INNER_1ST_SERVICE sudo bash ...
+ # find / -iname "\$OUTER_1ST_SCRIPT" > where_is_the_1st_script
+ # => OK créé
+#
+EOF
+ chmod +x \$INNER_1ST_SCRIPT
+#
+ # Configurer service qui démarre le premier script
+ # utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
+cat << EOF > /etc/systemd/system/\$INNER_1ST_SERVICE
+#
+ [Unit]
+ Description=Exécute le premier script interne
+#
+ [Service]
+ Type=Simple
+ #ExecStart=/bin/bash /\$INNER_1ST_SCRIPT
+ ExecStart=/usr/bin/sudo /bin/bash /\$INNER_1ST_SCRIPT
+#
+ [Install]
+ WantedBy=multi-user.target
+EOF
+ chmod 644 /etc/systemd/system/\$INNER_1ST_SERVICE
+ systemctl enable \$INNER_1ST_SERVICE
+#
+ # nécessaire ? a priori non ! : root@host:/# update-initramfs -k all -u
+EOC
+for f in /proc /sys /dev/pts ; do umount -lf squashfs$f ; done
+
+# Appliquer la personnalisation
+mksquashfs squashfs filesystem.squashfs -info
+umount -l /mnt/
+chroot squashfs dpkg-query -W --showformat='${Package}  ${Version}\n' \
+ > /mnt/CLONEZILLA/filesystem.manifest
+rm -rf squashfs
+rsync -P filesystem.squashfs /mnt/CLONEZILLA/live \
+ && rm filesystem.squashfs
+chmod 444 /mnt/CLONEZILLA/live/filesystem.squashfs
+
+# Script à exécuter en 1er ; peut être modifié hors LIVE session
+cat << EOF > /mnt/CLONEZILLA/$OUTER_1ST_SCRIPT
+#!/bin/bash
+#
+ # Attention : ce script peut être modifié que hors LIVE session !
+# 
+ # c'est bien root qui exécute
+#
+ # touch /touched
+ # => OK
+#
+ # Rédéfinir
+#
+ # Host Name pour multiple Clonezilla distants (defaut : $HOSTNAME_USB)
+ # Laisser vide pour ne pas redéfinir
+ NEW_HOSTNAME_USB=
+#
+ # Mot de passe de session (defaut : '$PASS')
+ # Laisser '' pour ne pas redéfinir
+ # Nota : 'PASS' protège PASS d'une expansion non voulue de * ou ! etc.
+ NEW_PASS=''
+#
+ if [[ ! -z \$NEW_HOSTNAME_USB ]] ; then
+  sed -i "s/$HOSTNAME_USB/\$NEW_HOSTNAME_USB/g" /etc/hosts
+  echo \$NEW_HOSTNAME_USB > /etc/hostname
+  hostnamectl set-hostname \$NEW_HOSTNAME_USB
+  systemctl restart avahi-daemon
+ fi
+#
+ if [[ ! \$NEW_PASS == '' ]] ; then
+  # echo \$NEW_PASS > /touched
+  echo -e "\$NEW_PASS\n\$NEW_PASS" | passwd user
+  echo -e "\$NEW_PASS\n\$NEW_PASS" | passwd root
+  # echo retour passwd : $?
+ fi
+#
+ # => touched contient bien le nouveau pass MAIS bizarrement user et root n'ont plus de mot de passe
+ # aussi relancer le script depuis la live session donne le même résultat
+#
+ #/usr/lib/live/mount/medium/$SCRIPT_NAME_NBD_EXPORT
+#
+EOF
+chmod +x /mnt/CLONEZILLA/$OUTER_1ST_SCRIPT
+
+# Exporter les disques locaux
+# Nota : heredoc avec variables non expandées
+cat << 'EOF' > /mnt/CLONEZILLA/$SCRIPT_NAME_NBD_EXPORT
+#!/bin/bash
+#
+ # c'est bien root qui exécute
+ #
+ # S'il y a encore des connexions établies (disques à distance importés)
+ if [[ $( netstat -atnp | grep nbd-server | grep ESTABLISHED ) ]] ; then
+  msg="Erreur : les disques sont déjà exportés"
+  msg="$msg\nVoici la liste :"
+  msg="$msg\n$( netstat -atnp | grep nbd-server | grep ESTABLISHED )"
+  echo -e "$msg"
+  exit 1
+ fi
+ #
+ # Tuer l'export des disques locaux
+ modprobe -r nbd
+ pkill nbd-server
+ #
+ modprobe nbd
+ #
+ # Créer la configuration de l'export des disques locaux
+ (
+  echo -e "[generic]\nuser=root\ngroup=root\nallowlist=true"
+  for e in $( \
+    lsblk -nd -o NAME,SIZE | awk '$2 != "0B" { print $1 "|" $2 }' \
+  ) ; do
+   dev=$( echo $e | cut -d '|' -f 1 )
+   id=$( \
+    find /dev -type l \
+         -exec bash -c 'l={} ; echo $l $( readlink $l )' \; \
+          | grep /by-id/.*$dev$ | cut -d ' ' -f 1 \
+          | rev | cut -d '/' -f 1 | rev )
+   size=$( echo $e | cut -d '|' -f 2 )
+   echo -e "[$dev@$id@$size]\nexportname=/dev/$dev"
+  done
+ ) > nbd.conf
+ #
+ # Exporter les disques locaux
+ # nbd-server -C /nbd.conf
+ # Je ne sais pas pourquoi mais il faut le démarrer comme ca (en tant que daemon ?)
+ nbd-server -C /nbd.conf -d
+EOF
+chmod +x /mnt/CLONEZILLA/$SCRIPT_NAME_NBD_EXPORT
+
+# Rendre la clé bootable
+bash /mnt/CLONEZILLA/utils/linux/makeboot.sh -L $HOSTNAME_USB -b ${DEV}1
+umount -l /mnt/CLONEZILLA
+rmdir /mnt/CLONEZILLA
+```
 
 ## Tester avec QEmu/KVM
 ```sh
