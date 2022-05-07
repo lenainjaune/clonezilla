@@ -228,6 +228,17 @@ rmdir /mnt/CLONEZILLA
 ## Automatisé avec export NBD
 Objectif : booter une clé USB clonezilla sur un système distant et automatiquement exporter ses disques locaux avec un serveur NBD pour pouvoir les exploiter à distance depuis un client NBD. Voir mon travail sur NBD [ici](https://github.com/lenainjaune/nbd_remote_disk/blob/main/README.md) et voir un exemple complet de mise en place d'une installation client/server NBD [là](https://github.com/lenainjaune/nbd_remote_disk/blob/main/README.md#exemple-complet-clientserveur-).
 
+Comment ça marche :
+* Formater support
+* DL dernier ISO clonezilla stable réel
+* Copie du contenu ISO sur support et modifier la configuration du boot (DHCP et AZERTY)
+* Extraction du système interne
+* Modification du système interne pour ajouter des outils, définir des réglages et permettre d'exécuter au boot un script externe
+* Réintégration du système interne
+* Ajout du script externe qui permettra d'outrepasser certains réglages et exécutera le script d'export NBD
+* Ajout du script d'export de disque NBD
+* Rendre support bootable
+
 ```sh
 # TODO : NBD empecher d'exporter les disques utilisés (montés ou autres) en particulier le disque usb de la live session (voir le test attacher support USB distant - plus bas)
 # TODO : gestion PASSWD comme dans le script utilisateur
