@@ -525,7 +525,7 @@ bash /mnt/CLONEZILLA/utils/linux/makeboot.sh -L $HOSTNAME_USB -b ${DEV}1
 umount -l /mnt/CLONEZILLA
 rmdir /mnt/CLONEZILLA
 ```
-# [1] utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
+[1] utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
 
 ## Tester avec QEmu/KVM
 ```sh
