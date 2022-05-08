@@ -239,20 +239,24 @@ Comment ça marche :
 * Ajout du script d'export de disque NBD
 * Rendre support bootable
 
+TODO : NBD permettre d'exporter les disques utilisés (montés ou autres) ou PAS (voir test attacher support USB distant - plus bas)
+
+TODO : gestion PASSWD comme dans le script utilisateur
+
+TODO : /etc/hosts est-ce ça qui donnait les erreur résolution DNS CZ-LIVE ?
+
+
+TODO : démarrer SSH ailleurs que /etc/profile exécuté à chaque logon
+
+TODO : empêcher de supprimer le script utilisateur avec chattr
+
+TODO : si script utilisateur absent en recreer un par defaut ; si existe deja verifier que shebang en ligne 1 
+
+TODO : parfois on doit redémarrer avahi (hostname-2 !)
+
+TODO : partition persistante avec scripts utilisateurs pour pouvoir modifier en live session
+
 ```sh
-# [1] utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
-
-# TODO : NBD permettre d'exporter les disques utilisés (montés ou autres) ou PAS (voir test attacher support USB distant - plus bas)
-# TODO : gestion PASSWD comme dans le script utilisateur
-# TODO : /etc/hosts est-ce ça qui donnait les erreur résolution DNS CZ-LIVE ?
-#
-# TODO : démarrer SSH ailleurs que /etc/profile exécuté à chaque logon
-# TODO : empêcher de supprimer le script utilisateur avec chattr
-# TODO : si script utilisateur absent en recreer un par defaut ; si existe deja verifier que shebang en ligne 1 
-# TODO : parfois on doit redémarrer avahi (hostname-2 !)
-# TODO : partition persistante avec scripts utilisateurs pour pouvoir modifier en live session
-
-
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
 lsblk
 DEV=/dev/sdb
