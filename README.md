@@ -380,8 +380,8 @@ cat << EOC| DNS=$DNS PASS=$PASS HOSTNAME_USB=$HOSTNAME_USB \
 cat << EOF > \$INNER_1ST_SCRIPT
 #!/bin/bash
 
- echo -e "127.0.0.1\tlocalhost\n127.0.1.1\t$HOSTNAME_USB" > /etc/hosts
- # => OK
+ # echo -e "127.0.0.1\tlocalhost\n127.0.1.1\t$HOSTNAME_USB" > /etc/hosts
+ # A priori la résolution host n'est pas bloquante ici
 
  echo -e '\$PASS\n\$PASS' | passwd user
  echo -e '\$PASS\n\$PASS' | passwd root
@@ -420,7 +420,6 @@ EOF
 EOC
 
 for f in /proc /sys /dev/pts ; do umount -lf squashfs$f ; done
-
 
 
 # Appliquer la personnalisation
@@ -474,7 +473,6 @@ cat << EOF > /mnt/CLONEZILLA/$OUTER_1ST_SCRIPT
 EOF
 
 chmod +x /mnt/CLONEZILLA/$OUTER_1ST_SCRIPT
-
 
 
 # Exporter les disques locaux
