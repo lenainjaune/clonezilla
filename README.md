@@ -2,7 +2,7 @@
 Tout ce qui concerne ce superbe outil
 
 # USB boot Clonezilla personnalisé
-Créer une clé bootable avec la dernière version de CZ (en 32 ou 64 bits), avec clavier FR, rend le système accessible par SSH et par HOSTNAME (Avahi), installe des outils utiles tel vim, exporte les disques locaux par NBD, exécute un script sur une 2ème partition en lecture/écriture pour permettre de modifier en LIVE session (persistance de données). 
+Créer une clé bootable en téléchargant la dernière version de CZ (en 32 ou 64 bits, en outrepassant un éventuel certificat Let's encrypt expiré), avec clavier FR, rend le système accessible par SSH et par HOSTNAME (Avahi), installe des outils utiles tel vim, exporte les disques locaux par NBD, exécute un script sur une 2ème partition en lecture/écriture pour permettre de modifier en LIVE session (persistance de données). 
 
 Exporter ses disques locaux avec un serveur NBD permet de pouvoir les exploiter à distance depuis un client NBD. Voir mon travail sur NBD [ici](https://github.com/lenainjaune/nbd_remote_disk/blob/main/README.md) et voir un exemple complet de mise en place d'une installation client/server NBD [là](https://github.com/lenainjaune/nbd_remote_disk/blob/main/README.md#exemple-complet-clientserveur-).
 
@@ -16,8 +16,6 @@ Comment ça marche :
 * Ajout du script externe sur la partition persistante qui permettra d'outrepasser certains réglages et exécutera le script d'export NBD
 * Ajout du script d'export de disque NBD
 * Rendre support bootable
-
-Nota : prend en compte le certificat Let's encrypt expiré (sinon **wget** ne télécharge pas)
 
 Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 
