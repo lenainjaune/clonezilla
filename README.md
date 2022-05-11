@@ -29,7 +29,7 @@ TODO : empêcher de supprimer le script utilisateur (avec chattr ?)
 
 TODO : si script utilisateur absent en recreer un par defaut ; si existe deja et que c'est un bien un fichier texte verifier que shebang en ligne 1
 
-TODO : parfois on doit redémarrer avahi (hostname-2 !) => https://github.com/lathiat/avahi/issues/117 (tester en particulier cache-entries-max=0 de gramels qui contournerait mais empêcherait la résolution à son tour)
+TODO : parfois on doit redémarrer avahi (hostname-2 !) => https://github.com/lathiat/avahi/issues/117 (tester en particulier **cache-entries-max=0** de @gramels qui contournerait mais empêcherait la résolution à son tour)
 
 TODO : encapsuler code changement de mot de passe et changement de hostname (pour empecher erreur et simplifier utilisation)
 
@@ -314,7 +314,7 @@ bash /mnt/CLONEZILLA/utils/linux/makeboot.sh -L $HOSTNAME_USB -b ${DEV}1
 umount -l /mnt/CLONEZILLA /mnt/$PART_RW_NAME
 rmdir /mnt/CLONEZILLA /mnt/$PART_RW_NAME
 ```
-[1] utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
+[1] utiliser les services ([source](https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183))
 
 ## Tester avec QEmu/KVM
 ```sh
