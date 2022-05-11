@@ -19,6 +19,8 @@ Comment ça marche :
 
 Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 
+TODO : mettre paramètres longs pour plus explicatif
+
 TODO : créer une clé USB Clonezilla USB pour 32-bits ET 64-bits (idéal : le même menu avec chargement de la LIVE session selon architecture)
 
 TODO : démarrer SSH ailleurs que /etc/profile exécuté à chaque logon
