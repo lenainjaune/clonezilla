@@ -33,6 +33,9 @@ TODO : parfois on doit redémarrer avahi (hostname-2 !) => https://github.com/la
 
 TODO : encapsuler code changement de mot de passe et changement de hostname (pour empecher erreur et simplifier utilisation)
 
+
+TODO : bug nbd.conf : | grep /by-id/.*$dev$ | cut -d ' ' -f 1 \ -> grep /by-id/.*$dev$ | sort -r | find -n 1 | cut -d ' ' -f 1
+
 ```sh
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
 lsblk
@@ -288,7 +291,7 @@ cat << 'EOF' > /mnt/CLONEZILLA/$SCRIPT_NAME_NBD_EXPORT
    id=$(
     find /dev -type l \
          -exec bash -c 'l={} ; echo $l $( readlink $l )' \; \
-    | grep /by-id/.*$dev$ | cut -d ' ' -f 1 \
+    | grep /by-id/.*$dev$ | sort -r | find -n 1 | cut -d ' ' -f 1 \
     | rev | cut -d '/' -f 1 | rev
    )
    size=$( echo $e | cut -d '|' -f 2 )
@@ -296,7 +299,7 @@ cat << 'EOF' > /mnt/CLONEZILLA/$SCRIPT_NAME_NBD_EXPORT
   
   done
 
- ) > nbd.conf
+ ) > /nbd.conf
  
  modprobe nbd
 
