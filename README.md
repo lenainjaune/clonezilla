@@ -538,8 +538,7 @@ cat << EOC | \
   chroot squashfs
 
  INNER_1ST_SERVICE=run_1st_script.service
- INNER_RUN_OUTER_SCRIPT=inner_run_outer_script.sh
- #inner_1st_script=inner_1st_script.sh
+ INNER_2ND_SCRIPT=inner_2nd_script.sh
  #inner_password_modifier=password_modifier.sh
  #inner_hostname_modifier=hostname_modifier.sh
  #OUTER_PASSWORD_M_FUNC=m_passwd
@@ -601,37 +600,51 @@ EOF
  systemctl enable \$INNER_1ST_SERVICE
 
 
- # Créer premier script d'initialisation qui exécute script externe
+ # Créer premier script d'initialisation qui exécute 2eme script interne
 
  cat << EOF > \$inner_1st_script
 #!/bin/bash
-
- exit
+ 
 
  /\$inner_password_modifier '\$pass'
+ 
+ 
+echo "passwd : /\$inner_password_modifier '\$pass'" >> touched
+
 
  ln -s /usr/lib/live/mount/medium /root/support_root
  ln -s /usr/lib/live/mount/medium /home/user/support_root
 
  ln -s /mnt /root/\$part_rw_name
  ln -s /mnt /home/user/\$part_rw_name
+ 
+ /\$INNER_2ND_SCRIPT
+ 
+ exit
 
 
  # Exécuter script interne qui exécute le script externe
- 
- # /\$INNER_RUN_OUTER_SCRIPT
  
  part=\\\$(
  
   lsblk -nlo NAME,LABEL | grep \$part_rw_name$ | cut -d ' ' -f 1
   
  )
+
+
+echo "part_rw_name : \$part_rw_name )" >> touched 
+echo "parts : \\\$( lsblk -nlo NAME,LABEL )" >> touched 
+echo "part detectée : \\\$part" >> touched
  
  if [[ ! \\\$( mount | grep /dev/\\\$part ) ]] ; then
  
   mount -l /dev/\\\$part /mnt
   
  fi
+ 
+ exit
+ 
+echo "mount opérationnel : \\\$( mount | grep /mnt ; ls -l /mnt )" >> touched
 
  f=/mnt/\$outer_1st_script
  if [[ ! -f \\\$f \
@@ -646,6 +659,9 @@ EOF
 
  fi
 
+echo "outer_1st_script accessible : \\\$( ls -l /mnt )" >> touched
+
+
  /mnt/\$outer_1st_script
 
 EOF
@@ -653,7 +669,53 @@ EOF
  chmod +x \$inner_1st_script
  
 
- # Créer premier script externe qui sera copié
+ # Créer 2ème script interne qui exécute le script externe
+
+ cat << EOF > \$INNER_2ND_SCRIPT
+#!/bin/bash
+ 
+ part=\\\$(
+ 
+  lsblk -nlo NAME,LABEL | grep \$part_rw_name$ | cut -d ' ' -f 1
+  
+ )
+
+echo "part_rw_name : \$part_rw_name )" >> touched 
+echo "parts : \\\$( lsblk -nlo NAME,LABEL )" >> touched 
+echo "part detectée : \\\$part" >> touched
+ 
+ if [[ ! \\\$( mount | grep /dev/\\\$part ) ]] ; then
+ 
+  mount -l /dev/\\\$part /mnt
+  
+ fi
+ 
+echo "mount opérationnel : \\\$( mount | grep /mnt ; ls -l /mnt )" >> touched
+
+ f=/mnt/\$outer_1st_script
+ if [[ ! -f \\\$f \
+    || ! \\\$( file \\\$f | grep " text executable$" ) \
+    || ! ( \
+          \\\$( grep "^#!" \\\$f ) && \
+          \\\$( grep "#*\$inner_1st_script" \\\$f ) \
+         ) ]] ; then
+         
+  cp /\$outer_1st_script /mnt/\$outer_1st_script
+  chmod +x /mnt/\$outer_1st_script
+
+ fi
+
+echo "outer_1st_script accessible : \\\$( ls -l /mnt )" >> touched
+
+
+ /mnt/\$outer_1st_script
+
+EOF
+
+ chmod +x \$INNER_2ND_SCRIPT
+
+
+ # Créer sauvegarde du script externe qui sera copié à chaque fois
  
  echo "\$externe" > \$outer_1st_script
 
@@ -700,17 +762,7 @@ EOF
 EOF
 
  chmod +x \$inner_hostname_modifier
- 
- 
- #~ # Ajouter déclencheur à chaque ouverture de session
- 
-  #~ a=\$(
-   #~ cat /root/.bashrc \
-   #~ | grep -vE ^/\$INNER_RUN_OUTER_SCRIPT
-   #~ echo "/\$INNER_RUN_OUTER_SCRIPT > /dev/null"
-  #~ )
- #~ echo "\$a" > /root/.bashrc
- 
+
 
  # Créer fonctions plus friendly pour accéder aux scripts internes
  # => ne marche pas !
