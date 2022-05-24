@@ -291,7 +291,7 @@ cat << 'EOF' > /mnt/CLONEZILLA/$SCRIPT_NAME_NBD_EXPORT
    id=$(
     find /dev -type l \
          -exec bash -c 'l={} ; echo $l $( readlink $l )' \; \
-    | grep /by-id/.*$dev$ | sort -r | find -n 1 | cut -d ' ' -f 1 \
+    | grep /by-id/.*$dev$ | sort -r | tail -n 1 | cut -d ' ' -f 1 \
     | rev | cut -d '/' -f 1 | rev
    )
    size=$( echo $e | cut -d '|' -f 2 )
