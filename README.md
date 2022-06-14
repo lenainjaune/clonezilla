@@ -33,8 +33,9 @@ TODO : parfois on doit redémarrer avahi (hostname-2 !) => https://github.com/la
 
 TODO : encapsuler code changement de mot de passe et changement de hostname (pour empecher erreur et simplifier utilisation)
 
-
 TODO : bug nbd.conf : | grep /by-id/.*$dev$ | cut -d ' ' -f 1 \ -> grep /by-id/.*$dev$ | sort -r | find -n 1 | cut -d ' ' -f 1
+
+TODO : disable horrible starting beep (https://serverfault.com/questions/899822/disabling-pc-speaker-beep-on-clonezilla-launch)
 
 ```sh
 # Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
