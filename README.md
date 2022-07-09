@@ -19,6 +19,8 @@ Comment ça marche :
 
 Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 
+Si erreur bloquante voir [ici](https://github.com/lenainjaune/auto-shrink-expand-part#ntfs-mount-problem).
+
 TODO : mettre paramètres longs pour plus explicatif
 
 TODO : créer une clé USB Clonezilla USB pour 32-bits ET 64-bits (idéal : le même menu avec chargement de la LIVE session selon architecture)
