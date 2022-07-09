@@ -326,7 +326,7 @@ rmdir /mnt/CLONEZILLA /mnt/$PART_RW_NAME
 
 # En cours
 
-Bientôt dans mon cloud brouillon ...
+Bientôt dans mon cloud brouillon (l'un ou l'autre) ...
 ```sh
 # [1] utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
 
