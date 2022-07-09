@@ -23,6 +23,8 @@ TODO : mettre paramètres longs pour plus explicatif
 
 TODO : créer une clé USB Clonezilla USB pour 32-bits ET 64-bits (idéal : le même menu avec chargement de la LIVE session selon architecture)
 
+TODO : créer clé USB CZ qui peut booter en UEFI automatiquement et avoir les mêmes fonctionnalités que la version BIOS
+
 TODO : démarrer SSH ailleurs que /etc/profile exécuté à chaque logon
 
 TODO : empêcher de supprimer le script utilisateur (avec chattr ?)
