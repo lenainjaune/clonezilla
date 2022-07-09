@@ -19,7 +19,7 @@ Comment ça marche :
 
 Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 
-Si erreur bloquante voir [ici](https://github.com/lenainjaune/auto-shrink-expand-part#ntfs-mount-problem).
+Attention : en cas d'erreur NTFS bloquante voir [ici](https://github.com/lenainjaune/auto-shrink-expand-part#ntfs-mount-problem) pour résoudre depuis CZ.
 
 TODO : mettre paramètres longs pour plus explicatif
 
