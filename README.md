@@ -325,6 +325,8 @@ rmdir /mnt/CLONEZILLA /mnt/$PART_RW_NAME
 [1] utiliser les services pour exécuter un script au boot ([source](https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183))
 
 # En cours
+
+Bientôt dans mon cloud brouillon ...
 ```sh
 # [1] utiliser les services (https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183)
 
