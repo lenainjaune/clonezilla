@@ -25,8 +25,6 @@ TODO : mettre paramètres longs pour plus explicatif
 
 TODO : créer une clé USB Clonezilla USB pour 32-bits ET 64-bits (idéal : le même menu avec chargement de la LIVE session selon architecture)
 
-TODO : créer clé USB CZ qui peut booter en UEFI automatiquement et avoir les mêmes fonctionnalités que la version BIOS
-
 TODO : démarrer SSH ailleurs que /etc/profile exécuté à chaque logon
 
 TODO : empêcher de supprimer le script utilisateur (avec chattr ?)
@@ -110,11 +108,29 @@ rmdir /mnt/ISO
 
 
 # Booter en FR et pré-exécuter dhclient
+# https://unix.stackexchange.com/questions/146955/how-to-split-long-sed-expression-into-multiple-lines/146962#146962
 
-sed -i -e '/^ *append initrd=/s/locales=/locales=fr_FR.UTF-8/' \
- -e 's/keyboard-layouts=/keyboard-layouts=fr/' \
- -e 's/enforcing=0 /enforcing=0  ocs_prerun="dhclient" /' \
+# BIOS Legacy
+sed -i -e '/^ *append \+initrd=/s'\
+'/'\
+' locales= keyboard-layouts= '\
+'/'\
+' locales=fr_FR.UTF-8 keyboard-layouts=fr ocs_prerun="dhclient" '\
+'/'\
  /mnt/CLONEZILLA/syslinux/syslinux.cfg
+
+# EFI
+sed -i -e '/^.*\/live\/vmlinuz \+/s'\
+'/'\
+' locales= keyboard-layouts= '\
+'/'\
+' locales=fr_FR.UTF-8 keyboard-layouts=fr ocs_prerun="dhclient" '\
+'/'\
+ /mnt/CLONEZILLA/boot/grub/grub.cfg
+
+
+# Récupérer le système interne
+
 mount -t squashfs -o loop /mnt/CLONEZILLA/live/filesystem.squashfs /mnt
 mkdir squashfs
 rsync -aP /mnt/ squashfs
@@ -206,7 +222,7 @@ EOC
 for f in /proc /sys /dev/pts ; do umount -lf squashfs$f ; done
 
 
-# Intégrer système interne personnalisé
+# Réintégrer système interne personnalisé
 
 mksquashfs squashfs filesystem.squashfs -info
 umount -l /mnt/
