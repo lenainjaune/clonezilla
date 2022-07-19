@@ -107,7 +107,7 @@ rm cz_latest.iso
 rmdir /mnt/ISO
 
 
-# Booter en FR et pré-exécuter dhclient (voir [2])
+# Booter en FR et pré-exécuter dhclient (pour la lisibilité de sed, voir en [2])
 
 # BIOS Legacy
 sed -i -e '/^ *append \+initrd=/s'\
@@ -339,7 +339,7 @@ rmdir /mnt/CLONEZILLA /mnt/$PART_RW_NAME
 ```
 [1] utiliser les services pour exécuter un script au boot ([source](https://unix.stackexchange.com/questions/529111/execute-a-script-before-login-screen/529183#529183))
 
-[2] Voir [ici](https://unix.stackexchange.com/questions/146955/how-to-split-long-sed-expression-into-multiple-lines/146962#146962)
+[2] Lisibilité de **sed** [ici](https://unix.stackexchange.com/questions/146955/how-to-split-long-sed-expression-into-multiple-lines/146962#146962)
 
 # En cours
 
