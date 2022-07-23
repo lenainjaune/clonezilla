@@ -21,6 +21,8 @@ Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 
 Attention : en cas d'erreur NTFS bloquante voir [ici](https://github.com/lenainjaune/auto-shrink-expand-part#ntfs-mount-problem) pour résoudre depuis CZ. Si on a une erreur liée à l'hibernation, monter la partition problématique en supprimant l'hibernation (voir lien précédent)
 
+TODO : montage /mnt depuis racine USB en live session => aide mémoire pour se souvenir qu'il y a des choses sur casper-rw
+
 TODO : mettre paramètres longs pour plus explicatif
 
 TODO : créer une clé USB Clonezilla USB pour 32-bits ET 64-bits (idéal : le même menu avec chargement de la LIVE session selon architecture)
