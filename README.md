@@ -21,6 +21,8 @@ Astuce : on peut tester la clé sans rebooter avec QEmu/KVM (voir plus bas)
 
 Attention : en cas d'erreur NTFS bloquante voir [ici](https://github.com/lenainjaune/auto-shrink-expand-part#ntfs-mount-problem) pour résoudre depuis CZ. Si on a une erreur liée à l'hibernation, monter la partition problématique en supprimant l'hibernation (voir lien précédent)
 
+TODO : mécanisme pour renommer à la volée (hostname cz-toto ; systemctl restart avahi-daemon)
+
 TODO : clonezilla sur clé USB bootable au format Ext4
 
 TODO : montage /mnt depuis racine USB en live session => aide mémoire pour se souvenir qu'il y a des choses sur casper-rw
@@ -44,7 +46,7 @@ TODO : bug nbd.conf : | grep /by-id/.*$dev$ | cut -d ' ' -f 1 \ -> grep /by-id/.
 TODO : disable horrible starting beep (https://serverfault.com/questions/899822/disabling-pc-speaker-beep-on-clonezilla-launch)
 
 ```sh
-# Définir la clé (utiliser aussi `dmesg -w` avant de brancher)
+# Définir la clé (utiliser aussi `dmesg -w` ou `journalctl -f` avant de brancher)
 lsblk
 DEV=/dev/sdb
 
