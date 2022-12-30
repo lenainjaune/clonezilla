@@ -32,6 +32,23 @@ RO en attente de la fin de migration
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Clonezilla
 Tout ce qui concerne ce superbe outil
 
